@@ -100,7 +100,7 @@ function sessionValid() {
   return Date.now() - s.signedInAt < 30 * DAY;
 }
 function brokerEmail() {
-  return (state.session && state.session.email) || "alghasemy@gmail.com";
+  return (state && state.session && state.session.email) || "alghasemy@gmail.com";
 }
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
@@ -175,7 +175,7 @@ function asCustom(lib) {
 function resolve(docId, item) {
   var built = MYDOCS_CATALOG.filter(function (d) { return d.id === docId; })[0];
   if (built) return built;
-  var lib = (state.library || []).filter(function (d) { return d.id === docId; })[0];
+  var lib = ((state && state.library) || []).filter(function (d) { return d.id === docId; })[0];
   if (lib) return asCustom(lib);
   if (item && item.snapshot) return asCustom(item.snapshot);
   return {
@@ -618,7 +618,7 @@ function activeClient() {
   return null;
 }
 function langSwitch(lang, act) {
-  var note = lang === "fa" ? '<p class="review-note">Farsi translation pending review</p>' : "";
+  var note = lang === "fa" ? '<p class="review-note">Farsi translation<br>pending review</p>' : "";
   return '<div class="lang-wrap ltr"><div class="seg lang" role="group" aria-label="Language">' +
     '<button type="button" data-act="' + act + '" data-lang="en" aria-pressed="' + (lang !== "fa") + '">EN</button>' +
     '<button type="button" data-act="' + act + '" data-lang="fa" aria-pressed="' + (lang === "fa") + '">فارسی</button>' +
@@ -1519,6 +1519,8 @@ function boot() {
   window.addEventListener("hashchange", function () {
     if (!ui.keepSheet) ui.sheet = null;
     ui.keepSheet = false;
+    ui.toast = "";
+    clearTimeout(ui.toastTimer);
     render();
   });
   document.body.addEventListener("click", onClick);
