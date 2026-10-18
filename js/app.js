@@ -11,7 +11,7 @@ var ui = {
   toastTimer: 0,
   error: "",
   helpLang: "en",
-  signEmail: "alghasemy@gmail.com",
+  signEmail: "broker@example.com",
   afterAuth: "#broker",
   customReturn: "library",
   lastKey: "",
@@ -100,7 +100,7 @@ function sessionValid() {
   return Date.now() - s.signedInAt < 30 * DAY;
 }
 function brokerEmail() {
-  return (state && state.session && state.session.email) || "alghasemy@gmail.com";
+  return (state && state.session && state.session.email) || "broker@example.com";
 }
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
@@ -354,7 +354,7 @@ function uploadEmail(c, item) {
 }
 function signInEmail() {
   return emailShell({
-    to: ui.signEmail || "alghasemy@gmail.com",
+    to: ui.signEmail || "broker@example.com",
     subject: "Your MyDocs sign-in link",
     paragraphs: [
       "Use the link below to open your client list. It works once and expires in 15 minutes.",
@@ -1139,7 +1139,7 @@ function readFields() {
     }
   });
   var sign = document.getElementById("sign-email");
-  if (sign) ui.signEmail = sign.value.trim() || "alghasemy@gmail.com";
+  if (sign) ui.signEmail = sign.value.trim() || "broker@example.com";
 }
 function createClient() {
   readFields();
@@ -1282,7 +1282,7 @@ function onClick(e) {
   if (act === "open-magic") {
     state.session = {
       signedInAt: Date.now(),
-      email: ui.signEmail || "alghasemy@gmail.com",
+      email: ui.signEmail || "broker@example.com",
       passkeyOffered: !!(state.session && state.session.passkeyOffered),
       passkeyEnabled: !!(state.session && state.session.passkeyEnabled)
     };
@@ -1506,7 +1506,7 @@ function resetAll() {
   customDraft = null;
   ui.sheet = null;
   ui.error = "";
-  ui.signEmail = "alghasemy@gmail.com";
+  ui.signEmail = "broker@example.com";
   ui.afterAuth = "#broker";
   save();
   go("#signin");
