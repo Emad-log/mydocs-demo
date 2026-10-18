@@ -326,30 +326,16 @@
       capture: false,
       kind: "upload",
       presets: ["Purchase", "Refinance", "Self-employed"],
-      sources: [CRA_SERVICES, CRA_IN],
+      sources: [],
       en: {
         name: "T1 General, last 2 years",
-        lead: "Your T1 General is the personal return you filed. It is not the Notice of Assessment. Send the last 2 years.",
-        steps: [
-          "Sign in to CRA My Account and select your Individual account.",
-          "Open Tax returns and select the year.",
-          "Open the assessed return. Save a PDF from your browser’s print dialog, or attach the PDF your tax software kept when you NETFILEd (Wealthsimple Tax, TurboTax, and similar).",
-          "Include the schedules that were filed with the return.",
-          "Repeat for the second year. The amounts should match that year’s Notice of Assessment."
-        ],
-        note: "Do not download a blank T1 from canada.ca and fill it in. If My Account will not show the full return, call 1-800-959-8281 and ask CRA to send a copy of the filed return."
+        lead: "Your full T1 return for each of the last 2 years. It's a PDF, usually 20 to 30 pages. Ask your accountant to email it to you, then upload it here.",
+        steps: []
       },
       fa: {
         name: "اظهارنامه T1 General، دو سال اخیر",
-        lead: "T1 General همان اظهارنامه شخصی است که ثبت کرده‌اید. Notice of Assessment نیست. دو سال اخیر را بفرستید.",
-        steps: [
-          "وارد CRA My Account شوید و حساب Individual را انتخاب کنید.",
-          "Tax returns را باز کنید و سال را انتخاب کنید.",
-          "اظهارنامه ارزیابی‌شده را باز کنید. از چاپ مرورگر PDF ذخیره کنید، یا همان PDF را بفرستید که نرم‌افزار مالیاتی موقع NETFILE نگه داشته (مثل Wealthsimple Tax یا TurboTax).",
-          "جدول‌هایی که با اظهارنامه رفته (schedules) را هم بگذارید.",
-          "برای سال دوم تکرار کنید. رقم‌ها باید با Notice of Assessment همان سال یکی باشد."
-        ],
-        note: "فرم خالی T1 را از canada.ca دانلود نکنید که خودتان پر کنید. اگر در CRA My Account فایل کامل را ندیدید، با 1-800-959-8281 زنگ بزنید و کپی اظهارنامه ثبت‌شده را بخواهید."
+        lead: "اظهارنامه کامل T1 دو سال گذشته. یک فایل PDF حدود ۲۰ تا ۳۰ صفحه است. از حسابدار خود بخواهید آن را برایتان ایمیل کند و همان فایل را اینجا بارگذاری کنید.",
+        steps: []
       }
     },
     {
@@ -359,30 +345,22 @@
       capture: false,
       kind: "upload",
       presets: ["Purchase", "Refinance", "Self-employed"],
-      sources: [NOA, MAIL, CRA_IN],
+      sources: [],
       en: {
         name: "Notice of Assessment, last 2 years",
-        lead: "The notice CRA sends after it processes the return. Your broker needs the original CRA PDF for each of the last 2 years, not a photo of the letter and not a screenshot.",
+        lead: "",
         steps: [
-          "Sign in to CRA My Account and select your Individual account.",
-          "Open Tax returns or Mail.",
-          "Open the Notice of Assessment for that year. If CRA later issued a Notice of Reassessment, send the latest one.",
-          "In Mail, open the notice and save the print-friendly PDF. Upload that CRA file here.",
-          "Do the same for the second year."
-        ],
-        note: "Notices issued after 9 February 2015 are available this way. Both the online PDF and the paper letter are official CRA notices. A Proof of income statement (option C) is a different document. If you cannot get the PDF, call 1-800-959-8281. A photo of the paper notice is often rejected."
+          "On a computer (this doesn't work on a phone), sign in to CRA My Account and open that year's Notice of Assessment. If you later got a Notice of Reassessment, send the newer one.",
+          "At the top of the page, under \"Notice of Assessment\", click the small \"PDF\" link and download the original file."
+        ]
       },
       fa: {
         name: "اطلاعیه ارزیابی، دو سال اخیر",
-        lead: "نامه‌ای که CRA بعد از رسیدگی به اظهارنامه می‌فرستد. مشاور وام PDF اصلی خودِ CRA را برای هر کدام از دو سال اخیر می‌خواهد، نه عکس نامه کاغذی و نه اسکرین‌شات.",
+        lead: "",
         steps: [
-          "وارد CRA My Account شوید و حساب Individual را انتخاب کنید.",
-          "Tax returns یا Mail را باز کنید.",
-          "Notice of Assessment همان سال را باز کنید. اگر بعداً Notice of Reassessment آمده، همان نسخه جدیدتر را بفرستید.",
-          "داخل Mail نامه را باز کنید و PDF مخصوص چاپ را ذخیره کنید. همان فایل CRA را اینجا بفرستید.",
-          "برای سال دوم همین کار را بکنید."
-        ],
-        note: "نامه‌های بعد از ۹ فوریه ۲۰۱۵ این‌طور در دسترس‌اند. هم PDF آنلاین و هم نامه کاغذی، اطلاعیه رسمی CRA است. Proof of income statement (option C) مدرک دیگری است. اگر به PDF نرسیدید با 1-800-959-8281 تماس بگیرید. عکس از نامه کاغذی اغلب برمی‌گردد."
+          "با کامپیوتر وارد CRA My Account شوید (با گوشی امکان‌پذیر نیست) و Notice of Assessment همان سال را باز کنید. اگر بعداً Notice of Reassessment دریافت کرده‌اید، نسخه جدیدتر را بفرستید.",
+          "بالای صفحه، زیر عنوان Notice of Assessment، روی کلمه کوچک PDF کلیک کنید و فایل اصلی را دانلود کنید."
+        ]
       }
     },
     {
@@ -423,26 +401,16 @@
       capture: false,
       kind: "upload",
       presets: ["Self-employed"],
-      sources: [T2, T2VIEW, AFTER],
+      sources: [],
       en: {
         name: "T2, last 2 years",
-        lead: "The corporation’s T2 return for each of the last 2 tax years, as it was filed, with the schedules that went with it. A blank T2 from canada.ca is not the document.",
-        steps: [
-          "Ask the accountant who filed the return for the PDF for each year.",
-          "You can also sign in to My Business Account, open Corporation Income Tax, and use View return status to open the assessed return. That screen shows the assessed T2 and its schedules.",
-          "The company Notice of Assessment is a separate document. Send both."
-        ],
-        note: "The T2 is the federal corporate return. Corporations in Quebec or Alberta also file a separate provincial corporate return. If that is you, ask the accountant for the provincial return as well."
+        lead: "Your company's full T2 return for the last 2 years. Ask your accountant to email you the PDF.",
+        steps: []
       },
       fa: {
         name: "اظهارنامه T2، دو سال اخیر",
-        lead: "اظهارنامه T2 شرکت برای هر کدام از دو سال مالیاتی اخیر، همان نسخه‌ای که ثبت شده، با جدول‌های همراهش. فرم خالی T2 از canada.ca این مدرک نیست.",
-        steps: [
-          "از حسابداری که اظهارنامه را ثبت کرده، PDF هر سال را بخواهید.",
-          "می‌توانید وارد CRA My Business Account شوید، Corporation Income Tax را باز کنید، و از View return status اظهارنامه ارزیابی‌شده را ببینید. آن صفحه T2 ارزیابی‌شده و جدول‌هایش را نشان می‌دهد.",
-          "اطلاعیه ارزیابی شرکت مدرک جداست. هر دو را بفرستید."
-        ],
-        note: "T2 اظهارنامه فدرال شرکت است. شرکت‌های کبک و آلبرتا یک اظهارنامه استانی جدا هم می‌دهند. اگر شرکت شما آنجاست، اظهارنامه استانی را هم از حسابدار بگیرید."
+        lead: "اظهارنامه کامل T2 شرکت برای دو سال گذشته. از حسابدار خود بخواهید فایل PDF آن را برایتان ایمیل کند.",
+        steps: []
       }
     },
     {
@@ -547,28 +515,16 @@
       capture: false,
       kind: "upload",
       presets: ["Purchase", "Refinance"],
-      sources: [SLIPS, CRA_SERVICES, CRA_IN],
+      sources: [],
       en: {
         name: "T4, last 2 years",
-        lead: "The T4 slip from each employer, for each of the last 2 years. A pay stub is not a T4.",
-        steps: [
-          "Ask the employer for a copy, or get it from CRA after the employer has filed it. Most slips arrive by the end of February. T3 and T5013 slips can be later.",
-          "Sign in to CRA My Account, select Individual, and open Tax information slips.",
-          "Choose the year, then the T4, and print or save it.",
-          "If you had more than one job, include every T4."
-        ],
-        note: "CRA cannot show a slip until the issuer has sent it. If the slip is missing because the name or social insurance number on it was wrong, ask the employer to fix it. It will not appear in My Account until they do."
+        lead: "Get your T4s from your employer and upload the original PDF they sent you. Please don't send photos or copies.",
+        steps: []
       },
       fa: {
         name: "برگه T4، دو سال اخیر",
-        lead: "برگه T4 از هر کارفرما، برای هر کدام از دو سال اخیر. فیش حقوقی T4 نیست.",
-        steps: [
-          "از کارفرما کپی بگیرید، یا بعد از اینکه کارفرما آن را برای CRA فرستاد از خود CRA بگیرید. بیشتر برگه‌ها تا پایان فوریه می‌رسند. برگه‌هایی مثل T3 و T5013 ممکن است دیرتر بیایند.",
-          "وارد CRA My Account شوید، Individual را انتخاب کنید، و Tax information slips را باز کنید.",
-          "سال را انتخاب کنید، بعد T4 را، و آن را چاپ یا ذخیره کنید.",
-          "اگر بیش از یک شغل داشته‌اید، T4 همه را بفرستید."
-        ],
-        note: "تا وقتی صادرکننده برگه را نفرستاده، CRA آن را نشان نمی‌دهد. اگر به‌خاطر اشتباه در نام یا شماره بیمه اجتماعی در حساب نیست، از کارفرما بخواهید اصلاح کند. تا آن وقت در CRA My Account نمی‌آید."
+        lead: "T4 را از کارفرمای خود بگیرید و فایل اصلی PDF که کارفرما فرستاده را بارگذاری کنید. لطفاً از فرستادن عکس یا کپی خودداری کنید.",
+        steps: []
       }
     },
     {

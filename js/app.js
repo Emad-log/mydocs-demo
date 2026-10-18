@@ -1011,14 +1011,15 @@ function helpSheet(s) {
     var label = lang === "fa" ? src.nameFa : src.name;
     return '<a class="source" href="' + esc(src.url) + '" target="_blank" rel="noopener noreferrer"><span class="source-name">' + esc(label) + '</span><span class="source-url" dir="ltr">' + esc(src.url) + '</span></a>';
   }).join("");
+  var hideSources = !sources && !doc.custom && doc.kind !== "form";
   var empty = sources ? "" : '<p class="small muted">' + (doc.custom
     ? (lang === "fa" ? "لینک منبع رسمی برای این مورد ثبت نشده." : "No official link was added for this item.")
     : (lang === "fa" ? "صفحه رسمی برای این مورد نیست. همین‌جا وارد می‌کنید." : "There is no official page for this item. You enter it here.")) + "</p>";
   return frame(lang === "fa" ? "rtl" : "ltr",
     langSwitch(lang, "help-lang") +
-    '<h2>' + esc(copy.name) + '</h2><p>' + esc(copy.lead) + '</p>' +
-    '<p class="kicker">' + esc(t(lang, "official")) + '</p>' + (sources || empty) +
-    '<p class="kicker">' + esc(t(lang, "steps")) + '</p><ol>' + steps + '</ol>' +
+    '<h2>' + esc(copy.name) + '</h2>' + (copy.lead ? '<p>' + esc(copy.lead) + '</p>' : '') +
+    (hideSources ? '' : '<p class="kicker">' + esc(t(lang, "official")) + '</p>' + (sources || empty)) +
+    (steps ? '<p class="kicker">' + esc(t(lang, "steps")) + '</p><ol>' + steps + '</ol>' : '') +
     (copy.note ? '<div class="callout">' + esc(copy.note) + '</div>' : '') +
     '<button type="button" class="text-btn" data-act="close">' + esc(t(lang, "close")) + '</button>'
   );
