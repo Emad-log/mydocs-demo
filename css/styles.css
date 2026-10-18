@@ -499,3 +499,5 @@ label.btn { display: flex; }
     transition: none !important;
   }
 }
+
+[dir="rtl"] ol { list-style-type: persian; }
