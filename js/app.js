@@ -235,7 +235,7 @@ function missingLines(c, lang) {
   return stats(c).outstanding.map(function (item) {
     var line = itemLabel(c, item, lang);
     if (item.status === "Rejected" && item.reason) {
-      line += lang === "fa" ? " — اصلاح: " + item.reason : " — fix: " + item.reason;
+      line += lang === "fa" ? " — اصلاح: \u2068" + item.reason + "\u2069" : " — fix: " + item.reason;
     }
     return line;
   });
@@ -988,7 +988,7 @@ function frame(dir, inner) {
 function emailSheet(email) {
   var dir = email.rtl ? "rtl" : "ltr";
   var list = (email.list || []).length ? "<ul>" + email.list.map(function (li) { return "<li>" + esc(li) + "</li>"; }).join("") + "</ul>" : "";
-  var paras = (email.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
+  var paras = (email.paragraphs || []).map(function (p) { return "<p dir=\"auto\">" + esc(p) + "</p>"; }).join("");
   var link = email.link ? '<a class="linkish ltr" href="' + esc(email.link.href) + '">' + esc(email.link.text) + '</a>' : "";
   var action = email.action ? '<button type="button" class="btn" data-act="' + email.action.act + '">' + esc(email.action.label) + '</button>' : "";
   var open = email.clientId ? '<p><button type="button" class="text-btn" data-act="open-client" data-id="' + esc(email.clientId) + '">Open file</button></p>' : "";
