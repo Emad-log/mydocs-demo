@@ -501,3 +501,21 @@ label.btn { display: flex; }
 }
 
 [dir="rtl"] ol { list-style-type: persian; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 999px;
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 620;
+  color: var(--muted);
+}
+.chips button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: rgba(11, 99, 229, 0.06); }
+.field-row { display: flex; gap: 8px; margin-top: 12px; align-items: stretch; }
+.field-row input { flex: 1; min-width: 0; }
+.field-row .btn { width: auto; flex: none; padding-inline: 18px; margin: 0; }
+.field-value { margin: 10px 0 0; font-size: 17px; font-weight: 620; display: flex; align-items: center; gap: 10px; }
+.card .seg { margin-top: 12px; }

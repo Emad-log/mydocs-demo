@@ -167,6 +167,25 @@
       }
     },
     {
+      id: "status",
+      perApplicant: true,
+      ifApplicable: false,
+      capture: true,
+      kind: "upload",
+      presets: [],
+      sources: [],
+      en: {
+        name: "PR card, work permit or visa",
+        lead: "A clear photo or scan of your Permanent Resident card, front and back. If you're not a permanent resident, upload your work permit or visa instead, front and back.",
+        steps: []
+      },
+      fa: {
+        name: "کارت اقامت دائم، مجوز کار یا ویزا",
+        lead: "عکس یا اسکن واضح از کارت اقامت دائم (PR Card)، پشت و رو. اگر اقامت دائم ندارید، به جای آن مجوز کار (Work Permit) یا ویزای خود را، پشت و رو، بارگذاری کنید.",
+        steps: []
+      }
+    },
+    {
       id: "aps",
       perApplicant: false,
       ifApplicable: false,
@@ -350,7 +369,7 @@
         name: "Notice of Assessment, last 2 years",
         lead: "",
         steps: [
-          "On a computer (this doesn't work on a phone), sign in to CRA My Account and open that year's Notice of Assessment. If you later got a Notice of Reassessment, send the newer one.",
+          "On a computer (this doesn't work on a phone), sign in to CRA My Account, go to Mail and open that year's Notice of Assessment. If you later got a Notice of Reassessment, send the newer one.",
           "At the top of the page, under \"Notice of Assessment\", click the small \"PDF\" link and download the original file."
         ]
       },
@@ -358,7 +377,7 @@
         name: "اطلاعیه ارزیابی، دو سال اخیر",
         lead: "",
         steps: [
-          "با کامپیوتر وارد CRA My Account شوید (با گوشی امکان‌پذیر نیست) و Notice of Assessment همان سال را باز کنید. اگر بعداً Notice of Reassessment دریافت کرده‌اید، نسخه جدیدتر را بفرستید.",
+          "با کامپیوتر وارد CRA My Account شوید (با گوشی امکان‌پذیر نیست)، به بخش Mail بروید و Notice of Assessment همان سال را باز کنید. اگر بعداً Notice of Reassessment دریافت کرده‌اید، نسخه جدیدتر را بفرستید.",
           "بالای صفحه، زیر عنوان Notice of Assessment، روی کلمه کوچک PDF کلیک کنید و فایل اصلی را دانلود کنید."
         ]
       }
@@ -420,28 +439,22 @@
       capture: false,
       kind: "upload",
       presets: ["Self-employed"],
-      sources: [AFTER, BMAIL],
+      sources: [],
       en: {
         name: "Company Notice of Assessment, last 2 years",
-        lead: "The CRA notice of assessment for the corporation, for each of the last 2 years. Not the T2 return itself.",
+        lead: "",
         steps: [
-          "Sign in to your CRA account and select the Business account (My Business Account). A representative uses Represent a Client.",
-          "Open Mail from the mail icon on the welcome page, or Mail on the overview.",
-          "Open the Notice of Assessment for that tax year. If the return was reassessed, send the latest notice.",
-          "Download or print the PDF, and repeat for the second year."
-        ],
-        note: "Most business correspondence is posted to My Business Account by default. If you are registered for email notifications, CRA emails you when new mail is waiting. The mail itself stays inside the account."
+          "On a computer (this doesn't work on a phone), sign in to your CRA account, choose My Business Account, go to Mail and open that year's Notice of Assessment.",
+          "At the top of the page, under \"Notice of Assessment\", click the small \"PDF\" link and download the original file."
+        ]
       },
       fa: {
         name: "اطلاعیه ارزیابی شرکت، دو سال اخیر",
-        lead: "اطلاعیه ارزیابی CRA برای خودِ شرکت، برای هر کدام از دو سال اخیر. این خودِ اظهارنامه T2 نیست.",
+        lead: "",
         steps: [
-          "وارد حساب CRA شوید و حساب Business را انتخاب کنید، یعنی CRA My Business Account. نماینده از Represent a Client استفاده می‌کند.",
-          "از آیکن نامه در صفحه خوش‌آمد، یا از Mail در صفحه کلی، نامه‌ها را باز کنید.",
-          "Notice of Assessment همان سال مالیاتی را باز کنید. اگر اظهارنامه دوباره ارزیابی شده، آخرین نامه را بفرستید.",
-          "PDF را دانلود یا چاپ کنید و برای سال دوم تکرار کنید."
-        ],
-        note: "بیشتر نامه‌های کسب‌وکار به‌طور پیش‌فرض داخل CRA My Business Account می‌آید. اگر اعلان ایمیلی را روشن کرده باشید، CRA خبر می‌دهد که نامه جدید آمده. خودِ نامه داخل حساب می‌ماند."
+          "با کامپیوتر وارد حساب CRA خود شوید (با گوشی امکان‌پذیر نیست)، My Business Account را انتخاب کنید، به بخش Mail بروید و Notice of Assessment همان سال را باز کنید.",
+          "بالای صفحه، زیر عنوان Notice of Assessment، روی کلمه کوچک PDF کلیک کنید و فایل اصلی را دانلود کنید."
+        ]
       }
     },
     {

@@ -4,6 +4,7 @@ var KEY = "mydocs.demo.v2";
 var FROM = "MyDocs <hello@mydocs.ca>";
 var DAY = 86400000;
 var OPT_IDS = ["aoi", "t2", "cnoa", "cbank", "ptax", "mstmt"];
+var PER_OPT_IDS = ["status"];
 
 var ui = {
   sheet: null,
@@ -147,30 +148,61 @@ function firstName(person, lang) {
 function findApplicant(c, id) {
   return (c.applicants || []).filter(function (a) { return a.id === id; })[0] || null;
 }
+var FIELD_TYPES = [
+  { id: "file", en: "File upload", fa: "فایل" },
+  { id: "text", en: "Short text", fa: "متن کوتاه" },
+  { id: "number", en: "Number", fa: "عدد" },
+  { id: "date", en: "Date", fa: "تاریخ" },
+  { id: "yesno", en: "Yes / No", fa: "بله / خیر" }
+];
+function fieldTypeOf(lib) {
+  var t = lib && lib.type;
+  return FIELD_TYPES.some(function (x) { return x.id === t; }) ? t : "file";
+}
+function fieldTypeLabel(type) {
+  var m = FIELD_TYPES.filter(function (x) { return x.id === type; })[0];
+  return m ? m.en : "File upload";
+}
 function asCustom(lib) {
+  var type = fieldTypeOf(lib);
   var how = (lib.howTo || "").split(/\n+/).filter(Boolean);
-  var desc = lib.description || "";
+  var noteEn = (lib.noteEn || lib.description || "").trim();
+  var noteFa = (lib.noteFa || "").trim();
   return {
     id: lib.id,
     custom: true,
     perApplicant: !!lib.perApplicant,
     ifApplicable: false,
     capture: false,
-    kind: "upload",
+    kind: type === "file" ? "upload" : "field",
+    fieldType: type,
+    sensitive: !!lib.sensitive,
     sources: lib.sourceUrl ? [{ name: lib.sourceName || lib.sourceUrl, nameFa: lib.sourceName || lib.sourceUrl, url: lib.sourceUrl }] : [],
     en: {
       name: lib.name,
-      lead: desc || "Your broker added this item.",
-      steps: how.length ? how : ["Ask your broker if you are not sure where this comes from."],
-      note: "Your broker wrote this note. It is saved in their library on this device."
+      lead: noteEn || "Your broker added this item.",
+      steps: how
     },
     fa: {
       name: lib.name,
-      lead: desc || "مشاور وام این مورد را اضافه کرده است.",
-      steps: how.length ? how : ["اگر نمی‌دانید این مدرک را از کجا بگیرید، از مشاور وام بپرسید."],
-      note: "این راهنما را مشاور وام نوشته و ترجمه نشده است."
+      lead: noteFa || noteEn || "مشاور وام این مورد را اضافه کرده است.",
+      steps: how
     }
   };
+}
+function fieldDisplay(doc, value, lang) {
+  var v = value == null ? "" : String(value);
+  if (doc.fieldType === "number") {
+    var n = Number(v.replace(/,/g, ""));
+    return isFinite(n) && v !== "" ? n.toLocaleString(lang === "fa" ? "fa-IR" : "en-CA") : v;
+  }
+  if (doc.fieldType === "yesno") return v === "yes" ? (lang === "fa" ? "بله" : "Yes") : v === "no" ? (lang === "fa" ? "خیر" : "No") : "";
+  return v;
+}
+function maskValue(doc, value) {
+  var raw = String(value == null ? "" : value).replace(doc.fieldType === "number" ? /,/g : /$^/, "");
+  if (doc.fieldType === "yesno" || raw.length < 5) return "••••";
+  return "•••• " + raw.slice(raw.length >= 8 ? -4 : -2);
 }
 function resolve(docId, item) {
   var built = MYDOCS_CATALOG.filter(function (d) { return d.id === docId; })[0];
@@ -346,8 +378,8 @@ function uploadEmail(c, item) {
   return emailShell({
     to: brokerEmail(),
     clientId: c.id,
-    subject: "New upload from " + c.name,
-    paragraphs: [c.name + " uploaded " + itemLabel(c, item, "en") + "."],
+    subject: (resolve(item.docId, item).kind === "field" ? "New answer from " : "New upload from ") + c.name,
+    paragraphs: [c.name + (resolve(item.docId, item).kind === "field" ? " answered " : " uploaded ") + itemLabel(c, item, "en") + "."],
     link: { href: "#broker/c/" + c.id, text: "https://demo.mydocs.ca/#broker/c/" + c.id },
     footnote: "Demo only. Nothing was sent. In the real product this is one email per 10 minutes per client, plus a daily digest."
   });
@@ -465,6 +497,15 @@ function seed() {
     { at: daysAgo(1), kind: "auto", email: reminderEmail(rahimi) }
   ];
 
+  var bonusLib = {
+    id: "lib_bonus",
+    name: "Annual bonus amount",
+    type: "number",
+    perApplicant: true,
+    sensitive: true,
+    noteEn: "Your total bonus for last year, before tax, in dollars. It is on your T4 or your final pay stub of the year.",
+    noteFa: "کل پاداش سال گذشته، قبل از مالیات، به دلار. روی T4 یا آخرین فیش حقوقی سال نوشته شده است."
+  };
   var rossi = {
     id: "c_rossi",
     name: "Daniel & Sofia Rossi",
@@ -483,8 +524,12 @@ function seed() {
     reminders: { enabled: true, firstAfterDays: 2, everyDays: 3, history: [
       { at: daysAgo(16), kind: "auto", email: null }
     ] },
-    activity: [{ at: daysAgo(1), text: "Uploaded MLS listing" }]
+    activity: [
+      { at: daysAgo(1), text: "Uploaded MLS listing" },
+      { at: daysAgo(2), text: "Answered Annual bonus amount — Daniel Rossi" }
+    ]
   };
+  rossi.items.push({ id: uid(), docId: bonusLib.id, applicantId: daniel.id, status: "Uploaded", files: [], value: "12500", reason: "", note: "", snapshot: bonusLib });
   rossi.reminders.history[0].email = reminderEmail(Object.assign({}, rossi, {
     items: rossi.items.map(function (i) {
       if (i.docId === "aps" || i.docId === "mls") return Object.assign({}, i, { status: "Missing", files: [], reason: "" });
@@ -532,9 +577,9 @@ function seed() {
   var priyaMail = uploadEmail(priyaC, priyaC.items.filter(function (i) { return i.docId === "cbank"; })[0]);
   var rahimiMail = uploadEmail(rahimi, rahimi.items.filter(function (i) { return i.docId === "aps"; })[0]);
   return {
-    version: 2,
+    version: 3,
     session: null,
-    library: [],
+    library: [bonusLib],
     clients: [rossi, rahimi, priyaC, marcusC],
     notifs: [
       { id: "n1", at: daysAgo(0), read: false, clientId: priyaC.id, title: priyaMail.subject, email: priyaMail },
@@ -573,7 +618,7 @@ function load() {
     var raw = localStorage.getItem(KEY);
     if (!raw) return null;
     var data = JSON.parse(raw);
-    if (!data || data.version !== 2 || !Array.isArray(data.clients)) return null;
+    if (!data || data.version !== 3 || !Array.isArray(data.clients)) return null;
     data.library = data.library || [];
     data.notifs = data.notifs || [];
     data.clients.forEach(ensureClient);
@@ -718,7 +763,7 @@ function choiceMeta(id) {
   var built = MYDOCS_CATALOG.filter(function (d) { return d.id === id; })[0];
   if (built) return { id: id, name: built.en.name, perApplicant: built.perApplicant, ifApplicable: built.ifApplicable, custom: false };
   var lib = state.library.filter(function (d) { return d.id === id; })[0];
-  if (lib) return { id: id, name: lib.name, perApplicant: !!lib.perApplicant, ifApplicable: false, custom: true };
+  if (lib) return { id: id, name: lib.name, perApplicant: !!lib.perApplicant, ifApplicable: false, custom: true, typeLabel: fieldTypeLabel(fieldTypeOf(lib)) };
   return null;
 }
 function presetSet(type) {
@@ -745,7 +790,7 @@ function renderNew() {
       var on = !!draft.selected[m.id];
       return '<div class="checkline"><button type="button" class="switch" role="switch" aria-checked="' + on + '" data-act="toggle-doc" data-id="' + esc(m.id) + '" aria-label="' + esc(m.name) + '"><i></i></button>' +
         '<div class="grow"><strong>' + esc(m.name) + '</strong>' +
-        (m.custom ? ' <span class="small faint">Custom</span>' : '') +
+        (m.custom ? ' <span class="small faint">' + esc(m.typeLabel) + '</span>' : '') +
         (m.perApplicant ? '<div class="small muted">One request per applicant</div>' : '') +
         '</div><button type="button" class="help" data-act="help" data-doc="' + esc(m.id) + '" aria-label="How to get ' + esc(m.name) + '">?</button></div>';
     }).join("");
@@ -777,24 +822,29 @@ function renderCustom(id) {
   if (!customDraft || customDraft.editId !== (id || "")) {
     var existing = id ? state.library.filter(function (d) { return d.id === id; })[0] : null;
     customDraft = existing ? {
-      editId: existing.id, name: existing.name, description: existing.description || "",
-      perApplicant: !!existing.perApplicant, howTo: existing.howTo || "",
-      sourceName: existing.sourceName || "", sourceUrl: existing.sourceUrl || ""
-    } : { editId: "", name: "", description: "", perApplicant: true, howTo: "", sourceName: "", sourceUrl: "" };
+      editId: existing.id, name: existing.name, type: fieldTypeOf(existing),
+      perApplicant: !!existing.perApplicant, sensitive: !!existing.sensitive,
+      noteEn: existing.noteEn || existing.description || "", noteFa: existing.noteFa || "",
+      legacy: existing
+    } : { editId: "", name: "", type: "file", perApplicant: true, sensitive: false, noteEn: "", noteFa: "", legacy: null };
   }
-  document.title = "Custom document · MyDocs";
+  document.title = "Custom item · MyDocs";
+  var types = FIELD_TYPES.map(function (ft) {
+    return '<button type="button" data-act="cf-type" data-type="' + ft.id + '" aria-pressed="' + (customDraft.type === ft.id) + '">' + esc(ft.en) + '</button>';
+  }).join("");
   paint(
-    '<div class="wrap pad-sticky"><h1>' + (customDraft.editId ? "Edit document" : "Custom document") + '</h1>' +
-    '<p class="lede">Saved to your library, then offered on every new client.</p>' +
+    '<div class="wrap pad-sticky"><h1>' + (customDraft.editId ? "Edit item" : "Custom item") + '</h1>' +
+    '<p class="lede">Saved to your library for every new client.</p>' +
     (ui.error ? '<p class="error">' + esc(ui.error) + '</p>' : '') +
     '<label class="field"><span>Name</span><input data-field="lib-name" value="' + esc(customDraft.name) + '" placeholder="Void cheque"></label>' +
-    '<label class="field"><span>Description, optional</span><input data-field="lib-desc" value="' + esc(customDraft.description) + '" placeholder="Shown to the client"></label>' +
-    '<p class="lbl">Ask for it</p><div class="seg">' +
+    '<p class="lbl">Type</p><div class="chips" role="group" aria-label="Type">' + types + '</div>' +
+    '<p class="lbl" style="margin-top:16px">Ask for it</p><div class="seg">' +
     '<button type="button" data-act="scope" data-scope="applicant" aria-pressed="' + (!!customDraft.perApplicant) + '">Each applicant</button>' +
     '<button type="button" data-act="scope" data-scope="file" aria-pressed="' + (!customDraft.perApplicant) + '">One for the file</button></div>' +
-    '<label class="field" style="margin-top:14px"><span>How the client gets it, optional</span><textarea data-field="lib-how" placeholder="Where it comes from, in a sentence or two.">' + esc(customDraft.howTo) + '</textarea></label>' +
-    '<label class="field"><span>Official source name, optional</span><input data-field="lib-src-name" value="' + esc(customDraft.sourceName) + '" placeholder="City of Toronto"></label>' +
-    '<label class="field"><span>Official source link, optional</span><input data-field="lib-src-url" type="url" inputmode="url" value="' + esc(customDraft.sourceUrl) + '" placeholder="https://"></label></div>' +
+    '<label class="field" style="margin-top:16px"><span>? note</span><textarea data-field="lib-note-en" rows="3" placeholder="What it is and where to find it.">' + esc(customDraft.noteEn) + '</textarea></label>' +
+    '<label class="field"><span>? note in Farsi, optional</span><textarea data-field="lib-note-fa" rows="3" dir="rtl" lang="fa">' + esc(customDraft.noteFa) + '</textarea></label>' +
+    '<div class="toggle-row" style="border:0"><button type="button" class="switch" role="switch" aria-checked="' + (!!customDraft.sensitive) + '" data-act="cf-sens" aria-label="Sensitive"><i></i></button>' +
+    '<div class="grow"><strong>Sensitive</strong><div class="small muted">Hidden on your side until you tap. Never in emails.</div></div></div></div>' +
     '<div class="sticky"><div class="sticky-inner"><button type="button" class="btn" data-act="save-custom">Save to library</button></div></div>'
   );
 }
@@ -802,7 +852,7 @@ function renderLibrary() {
   document.title = "Library · MyDocs";
   var rows = state.library.map(function (d) {
     return '<div class="person"><div class="row-between"><div class="stack"><strong>' + esc(d.name) + '</strong>' +
-      '<span class="small muted">' + (d.perApplicant ? "Each applicant" : "One for the file") + '</span></div>' +
+      '<span class="small muted">' + esc(fieldTypeLabel(fieldTypeOf(d))) + ' · ' + (d.perApplicant ? "Each applicant" : "One for the file") + (d.sensitive ? " · Sensitive" : "") + '</span></div>' +
       '<span class="inline"><a class="text-btn" href="#broker/custom/' + d.id + '" data-act="edit-lib" data-id="' + d.id + '">Edit</a>' +
       '<button type="button" class="text-btn" data-act="delete-lib" data-id="' + d.id + '">Delete</button></span></div></div>';
   }).join("");
@@ -828,13 +878,23 @@ function renderBrokerItem(c, item) {
   var name = doc.en.name;
   var files = (item.files || []).map(function (f) { return "<li>" + esc(f.name) + "</li>"; }).join("");
   var actions = "";
-  if (item.status === "Uploaded" && doc.kind !== "form") {
+  if (item.status === "Uploaded" && doc.kind !== "form" && doc.kind !== "field") {
     actions = '<div class="pair"><button type="button" class="btn" data-act="accept" data-item="' + item.id + '">Accept</button>' +
       '<button type="button" class="btn btn-quiet" data-act="reject" data-item="' + item.id + '">Reject</button></div>';
   }
-  if (doc.kind === "form" && item.status === "Uploaded") {
+  if ((doc.kind === "form" || doc.kind === "field") && item.status === "Uploaded") {
     actions = '<div class="pair"><button type="button" class="btn" data-act="accept" data-item="' + item.id + '">Accept</button>' +
       '<button type="button" class="btn btn-quiet" data-act="reject" data-item="' + item.id + '">Reject</button></div>';
+  }
+  var shown = "";
+  if (doc.kind === "field" && item.value != null && item.value !== "" && item.status !== "Missing") {
+    var revealed = ui.revealed && ui.revealed[item.id];
+    if (doc.sensitive && !revealed) {
+      shown = '<p class="field-value"><span class="ltr">' + esc(maskValue(doc, item.value)) + '</span> <button type="button" class="text-btn" data-act="reveal" data-item="' + item.id + '">Show</button></p>';
+    } else {
+      shown = '<p class="field-value"><span class="ltr">' + esc(fieldDisplay(doc, item.value, "en")) + '</span>' +
+        (doc.sensitive ? ' <button type="button" class="text-btn" data-act="reveal" data-item="' + item.id + '">Hide</button>' : '') + '</p>';
+    }
   }
   var contact = "";
   if (doc.kind === "form" && c.contact && item.status !== "Missing") {
@@ -842,7 +902,7 @@ function renderBrokerItem(c, item) {
   }
   return '<article class="card"><div class="card-top"><div class="stack"><h3>' + esc(name) + '</h3>' +
     '<span class="status ' + statusClass(item.status) + '">' + statusText(item.status, "en", true) + '</span></div>' +
-    helpBtn(item.docId, name) + '</div>' + contact +
+    helpBtn(item.docId, name) + '</div>' + contact + shown +
     (files ? '<ul class="files">' + files + '</ul>' : '') +
     (item.reason ? '<p class="reason">' + esc(item.reason) + '</p>' : '') +
     (item.note ? '<p class="small muted">' + esc(item.note) + '</p>' : '') +
@@ -857,11 +917,19 @@ function renderDetail(c) {
     var title = sec.person ? personName(sec.person, "en") : "The file";
     return '<p class="kicker">' + esc(title) + '</p>' + sec.items.map(function (item) { return renderBrokerItem(c, item); }).join("");
   }).join("");
-  var opts = OPT_IDS.map(function (id) {
+  function optRow(id, person) {
     var doc = resolve(id);
-    var on = c.items.some(function (i) { return i.docId === id; });
-    return '<div class="toggle-row"><button type="button" class="switch" role="switch" aria-checked="' + on + '" data-act="opt" data-doc="' + id + '" aria-label="' + esc(doc.en.name) + '"><i></i></button>' +
-      '<div class="grow">' + esc(doc.en.name) + '</div>' + helpBtn(id, doc.en.name) + '</div>';
+    var pid = person ? person.id : "";
+    var on = c.items.some(function (i) { return i.docId === id && (i.applicantId || "") === pid; });
+    var label = doc.en.name + (person ? " — " + personName(person, "en") : "");
+    return '<div class="toggle-row"><button type="button" class="switch" role="switch" aria-checked="' + on + '" data-act="opt" data-doc="' + esc(id) + '" data-person="' + esc(pid) + '" aria-label="' + esc(label) + '"><i></i></button>' +
+      '<div class="grow">' + esc(doc.en.name) + (person ? '<div class="small muted">' + esc(personName(person, "en")) + '</div>' : '') + '</div>' + helpBtn(id, doc.en.name) + '</div>';
+  }
+  var optIds = PER_OPT_IDS.concat(OPT_IDS).concat(state.library.map(function (d) { return d.id; }));
+  var opts = optIds.map(function (id) {
+    var doc = resolve(id);
+    if (doc.perApplicant) return c.applicants.map(function (a) { return optRow(id, a); }).join("");
+    return optRow(id, null);
   }).join("");
   var hist = (c.reminders.history || []).slice().reverse().map(function (h, idx) {
     var real = c.reminders.history.length - 1 - idx;
@@ -903,6 +971,22 @@ function fileInput(item, capture, lang) {
   return '<label class="btn">' + label +
     '<input class="hidden-file" type="file" accept="image/*,.jpg,.jpeg,.png,.heic,.heif,.pdf,application/pdf" multiple data-act="upload" data-item="' + item.id + '"></label>';
 }
+function fieldInput(c, item, doc, lang) {
+  var fa = lang === "fa";
+  if (item.status === "Accepted") return '<p class="field-value"><span dir="auto">' + esc(fieldDisplay(doc, item.value, lang)) + '</span></p>';
+  if (doc.fieldType === "yesno") {
+    return '<div class="seg" role="group" aria-label="' + esc(pack(doc, lang).name) + '">' +
+      '<button type="button" data-act="yesno" data-item="' + item.id + '" data-value="yes" aria-pressed="' + (item.value === "yes") + '">' + (fa ? "بله" : "Yes") + '</button>' +
+      '<button type="button" data-act="yesno" data-item="' + item.id + '" data-value="no" aria-pressed="' + (item.value === "no") + '">' + (fa ? "خیر" : "No") + '</button></div>';
+  }
+  var drafts = ui.fieldDrafts || {};
+  var current = drafts[item.id] != null ? drafts[item.id] : (item.value || "");
+  if (doc.fieldType === "number" && drafts[item.id] == null && current) current = fieldDisplay(doc, current, "en");
+  var attrs = doc.fieldType === "number" ? 'type="text" inputmode="decimal" dir="ltr"' :
+    doc.fieldType === "date" ? 'type="date" dir="ltr"' : 'type="text" dir="auto"';
+  return '<div class="field-row"><input ' + attrs + ' data-field="cf-' + item.id + '" value="' + esc(current) + '" aria-label="' + esc(pack(doc, lang).name) + '">' +
+    '<button type="button" class="btn" data-act="save-field" data-item="' + item.id + '">' + t(lang, "save") + '</button></div>';
+}
 function renderClientItem(c, item, lang) {
   var doc = resolve(item.docId, item);
   var copy = pack(doc, lang);
@@ -919,6 +1003,8 @@ function renderClientItem(c, item, lang) {
         '<label class="field"><span>' + t(lang, "address") + '</span><input data-field="ct-address" value="' + esc(ct.address) + '"></label>' +
         '<button type="button" class="btn" data-act="save-contact" data-item="' + item.id + '">' + t(lang, "save") + '</button>';
     }
+  } else if (doc.kind === "field") {
+    body = fieldInput(c, item, doc, lang);
   } else if (open && item.status !== "Uploaded") {
     body = fileInput(item, !!doc.capture, lang);
   } else if (item.status === "Uploaded") {
@@ -1011,7 +1097,7 @@ function helpSheet(s) {
     var label = lang === "fa" ? src.nameFa : src.name;
     return '<a class="source" href="' + esc(src.url) + '" target="_blank" rel="noopener noreferrer"><span class="source-name">' + esc(label) + '</span><span class="source-url" dir="ltr">' + esc(src.url) + '</span></a>';
   }).join("");
-  var hideSources = !sources && !doc.custom && doc.kind !== "form";
+  var hideSources = !sources && doc.kind !== "form";
   var empty = sources ? "" : '<p class="small muted">' + (doc.custom
     ? (lang === "fa" ? "لینک منبع رسمی برای این مورد ثبت نشده." : "No official link was added for this item.")
     : (lang === "fa" ? "صفحه رسمی برای این مورد نیست. همین‌جا وارد می‌کنید." : "There is no official page for this item. You enter it here.")) + "</p>";
@@ -1117,10 +1203,9 @@ function readFields() {
     if (f === "phone" && draft) draft.phone = el.value;
     if (f === "applicant" && draft) draft.applicants[Number(el.dataset.index)] = el.value;
     if (customDraft && f === "lib-name") customDraft.name = el.value;
-    if (customDraft && f === "lib-desc") customDraft.description = el.value;
-    if (customDraft && f === "lib-how") customDraft.howTo = el.value;
-    if (customDraft && f === "lib-src-name") customDraft.sourceName = el.value;
-    if (customDraft && f === "lib-src-url") customDraft.sourceUrl = el.value;
+    if (customDraft && f === "lib-note-en") customDraft.noteEn = el.value;
+    if (customDraft && f === "lib-note-fa") customDraft.noteFa = el.value;
+    if (f.indexOf("cf-") === 0) { ui.fieldDrafts = ui.fieldDrafts || {}; ui.fieldDrafts[f.slice(3)] = el.value; }
     if (f === "ct-phone" || f === "ct-email" || f === "ct-address") {
       var owner = activeClient();
       if (owner) {
@@ -1182,30 +1267,56 @@ function createClient() {
 function saveCustom() {
   readFields();
   if (!customDraft.name.trim()) { ui.error = "Add a name."; render(); return; }
-  if (customDraft.sourceUrl.trim() && !validHttps(customDraft.sourceUrl.trim())) {
-    ui.error = "The source link has to start with https://";
-    render();
-    return;
-  }
+  var old = customDraft.legacy || {};
   var rec = {
     id: customDraft.editId || ("lib_" + uid()),
     name: customDraft.name.trim(),
-    description: customDraft.description.trim(),
+    type: customDraft.type,
     perApplicant: !!customDraft.perApplicant,
-    howTo: customDraft.howTo.trim(),
-    sourceName: customDraft.sourceName.trim(),
-    sourceUrl: customDraft.sourceUrl.trim()
+    sensitive: !!customDraft.sensitive,
+    noteEn: customDraft.noteEn.trim(),
+    noteFa: customDraft.noteFa.trim()
   };
+  if (old.sourceUrl) { rec.sourceName = old.sourceName || ""; rec.sourceUrl = old.sourceUrl; }
+  if (old.howTo) rec.howTo = old.howTo;
   var idx = -1;
   state.library.forEach(function (d, i) { if (d.id === rec.id) idx = i; });
   if (idx >= 0) state.library[idx] = rec;
   else state.library.push(rec);
+  state.clients.forEach(function (c) {
+    c.items.forEach(function (i) { if (i.docId === rec.id) i.snapshot = rec; });
+  });
   if (draft) draft.selected[rec.id] = true;
   else ui.justAdded = rec.id;
   customDraft = null;
   ui.error = "";
   save();
   go(ui.customReturn === "new" ? "#broker/new" : "#broker/library");
+}
+function saveField(itemId, forced) {
+  var c = activeClient();
+  if (!c) return;
+  var item = c.items.filter(function (i) { return i.id === itemId; })[0];
+  if (!item) return;
+  var doc = resolve(item.docId, item);
+  var fa = c.lang === "fa";
+  var v = forced != null ? forced : (val("cf-" + item.id) || "").trim();
+  if (doc.fieldType === "number") {
+    var digits = v.replace(/[,\s$]/g, "").replace(/[۰-۹]/g, function (d) { return String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)); });
+    if (digits === "" || !isFinite(Number(digits))) { toast(fa ? "یک عدد وارد کنید." : "Enter a number."); return; }
+    v = digits;
+  }
+  if (!v) { toast(fa ? "این مورد را پر کنید." : "Fill this in first."); return; }
+  item.value = v;
+  item.status = "Uploaded";
+  item.reason = "";
+  if (ui.fieldDrafts) delete ui.fieldDrafts[item.id];
+  if (!item.snapshot) item.snapshot = state.library.filter(function (d) { return d.id === item.docId; })[0] || null;
+  log(c, "Answered " + itemLabel(c, item, "en"));
+  var email = uploadEmail(c, item);
+  state.notifs.unshift({ id: uid(), at: Date.now(), read: false, clientId: c.id, title: email.subject, email: email });
+  save();
+  toast(fa ? FA.saved : EN.saved);
 }
 function onUpload(itemId, fileList) {
   var c = activeClient();
@@ -1338,6 +1449,8 @@ function onClick(e) {
   }
   if (act === "create") { createClient(); return; }
   if (act === "scope") { readFields(); customDraft.perApplicant = el.dataset.scope === "applicant"; render(); return; }
+  if (act === "cf-type") { readFields(); customDraft.type = el.dataset.type; render(); return; }
+  if (act === "cf-sens") { readFields(); customDraft.sensitive = !customDraft.sensitive; render(); return; }
   if (act === "save-custom") { saveCustom(); return; }
   if (act === "delete-lib") { ui.sheet = { type: "confirm-delete", id: el.dataset.id }; render(); return; }
   if (act === "delete-yes") {
@@ -1352,7 +1465,7 @@ function onClick(e) {
     render();
     return;
   }
-  if (act === "accept" || act === "reject" || act === "note" || act === "remind" || act === "opt" || act === "rem-on" || act === "download" || act === "hist" || act === "save-contact" || act === "fresh-link" || act === "reject-send" || act === "note-save" || act === "open-notif" || act === "open-client") {
+  if (act === "accept" || act === "reject" || act === "note" || act === "remind" || act === "opt" || act === "reveal" || act === "save-field" || act === "yesno" || act === "rem-on" || act === "download" || act === "hist" || act === "save-contact" || act === "fresh-link" || act === "reject-send" || act === "note-save" || act === "open-notif" || act === "open-client") {
     handleClientAct(act, el);
   }
 }
@@ -1377,7 +1490,15 @@ function handleClientAct(act, el) {
   if (act === "remind") { remind(c, "manual"); return; }
   if (act === "fresh-link") { ui.sheet = { type: "email", email: freshLinkEmail(c) }; render(); return; }
   if (act === "rem-on") { c.reminders.enabled = !c.reminders.enabled; save(); render(); return; }
-  if (act === "opt") { toggleOpt(c, el.dataset.doc); return; }
+  if (act === "opt") { toggleOpt(c, el.dataset.doc, el.dataset.person || null); return; }
+  if (act === "reveal") {
+    ui.revealed = ui.revealed || {};
+    ui.revealed[el.dataset.item] = !ui.revealed[el.dataset.item];
+    render();
+    return;
+  }
+  if (act === "save-field") { saveField(el.dataset.item); return; }
+  if (act === "yesno") { saveField(el.dataset.item, el.dataset.value === "yes" ? "yes" : "no"); return; }
   if (act === "hist") {
     var h = c.reminders.history[Number(el.dataset.index)];
     if (h && h.email) { ui.sheet = { type: "email", email: h.email }; render(); }
@@ -1458,18 +1579,22 @@ function val(field) {
   var el = document.querySelector('[data-field="' + field + '"]');
   return el ? el.value : "";
 }
-function toggleOpt(c, docId) {
-  var existing = c.items.filter(function (i) { return i.docId === docId; });
+function toggleOpt(c, docId, applicantId) {
+  var pid = applicantId || null;
+  var match = function (i) { return i.docId === docId && (i.applicantId || null) === pid; };
+  var existing = c.items.filter(match);
+  var label = resolve(docId).en.name + (pid ? " — " + personName(findApplicant(c, pid), "en") : "");
   if (existing.length) {
-    if (existing.some(function (i) { return i.files && i.files.length; })) {
-      toast("That item has files, so it stays on the list.");
+    if (existing.some(function (i) { return (i.files && i.files.length) || (i.value != null && i.value !== ""); })) {
+      toast("That item has an answer or files, so it stays on the list.");
       return;
     }
-    c.items = c.items.filter(function (i) { return i.docId !== docId; });
-    log(c, "Turned off " + resolve(docId).en.name);
+    c.items = c.items.filter(function (i) { return !match(i); });
+    log(c, "Turned off " + label);
   } else {
-    c.items.push({ id: uid(), docId: docId, applicantId: null, status: "Missing", files: [], reason: "", note: "" });
-    log(c, "Turned on " + resolve(docId).en.name);
+    var lib = state.library.filter(function (d) { return d.id === docId; })[0];
+    c.items.push({ id: uid(), docId: docId, applicantId: pid, status: "Missing", files: [], reason: "", note: "", snapshot: lib || undefined });
+    log(c, "Turned on " + label);
   }
   save();
   render();
